@@ -1,89 +1,72 @@
+import * as tslib_1 from "tslib";
 import { Injectable } from '@angular/core';
-import { Observable, Subject } from "rxjs";
-
-import { ICalendarComponent, IView, CalendarMode, QueryMode } from './calendar';
-
-@Injectable()
-export class CalendarService {
-    queryMode: QueryMode;
-    currentDateChangedFromParent$: Observable<Date>;
-    currentDateChangedFromChildren$: Observable<Date>;
-    eventSourceChanged$: Observable<void>;
-
-    private _currentDate: Date;
-    private currentDateChangedFromParent = new Subject<Date>();
-    private currentDateChangedFromChildren = new Subject<Date>();
-    private eventSourceChanged = new Subject<void>();
-
-    constructor() {
+import { Subject } from "rxjs";
+var CalendarService = /** @class */ (function () {
+    function CalendarService() {
+        this.currentDateChangedFromParent = new Subject();
+        this.currentDateChangedFromChildren = new Subject();
+        this.eventSourceChanged = new Subject();
         this.currentDateChangedFromParent$ = this.currentDateChangedFromParent.asObservable();
         this.currentDateChangedFromChildren$ = this.currentDateChangedFromChildren.asObservable();
         this.eventSourceChanged$ = this.eventSourceChanged.asObservable();
     }
-
-    setCurrentDate(val: Date, fromParent: boolean = false) {
+    CalendarService.prototype.setCurrentDate = function (val, fromParent) {
+        if (fromParent === void 0) { fromParent = false; }
         this._currentDate = val;
         if (fromParent) {
             this.currentDateChangedFromParent.next(val);
-        } else {
+        }
+        else {
             this.currentDateChangedFromChildren.next(val);
         }
-    }
-
-    get currentDate(): Date {
-        return this._currentDate;
-    }
-
-    rangeChanged(component: ICalendarComponent) {
+    };
+    Object.defineProperty(CalendarService.prototype, "currentDate", {
+        get: function () {
+            return this._currentDate;
+        },
+        enumerable: true,
+        configurable: true
+    });
+    CalendarService.prototype.rangeChanged = function (component) {
         if (this.queryMode === 'local') {
             if (component.eventSource && component.onDataLoaded) {
                 component.onDataLoaded();
             }
-        } else if (this.queryMode === 'remote') {
+        }
+        else if (this.queryMode === 'remote') {
             component.onRangeChanged.emit(component.range);
         }
-    }
-
-    private getStep(): { years: number; months: number; days: number; } {
+    };
+    CalendarService.prototype.getStep = function () {
         return {
             years: 0,
             months: 0,
             days: 7
         };
-    }
-
-    getAdjacentCalendarDate(mode: CalendarMode, direction: number): Date {
-        let step = this.getStep();
-        let calculateCalendarDate = new Date(this.currentDate.getTime()),
-            year = calculateCalendarDate.getFullYear() + direction * step.years,
-            month = calculateCalendarDate.getMonth() + direction * step.months,
-            date = calculateCalendarDate.getDate() + direction * step.days;
-
+    };
+    CalendarService.prototype.getAdjacentCalendarDate = function (mode, direction) {
+        var step = this.getStep();
+        var calculateCalendarDate = new Date(this.currentDate.getTime()), year = calculateCalendarDate.getFullYear() + direction * step.years, month = calculateCalendarDate.getMonth() + direction * step.months, date = calculateCalendarDate.getDate() + direction * step.days;
         calculateCalendarDate.setFullYear(year, month, date);
-
         return calculateCalendarDate;
-    }
-
-    getAdjacentViewStartTime(component: ICalendarComponent, direction: number): Date {
-        let adjacentCalendarDate = this.getAdjacentCalendarDate(component.mode, direction);
+    };
+    CalendarService.prototype.getAdjacentViewStartTime = function (component, direction) {
+        var adjacentCalendarDate = this.getAdjacentCalendarDate(component.mode, direction);
         return component.getRange(adjacentCalendarDate).startTime;
-    }
-
-    populateAdjacentViews(component: ICalendarComponent) {
-        let currentViewStartDate: Date,
-            currentViewData: IView[],
-            toUpdateViewIndex: number,
-            currentViewIndex = component.currentViewIndex;
-
+    };
+    CalendarService.prototype.populateAdjacentViews = function (component) {
+        var currentViewStartDate, currentViewData, toUpdateViewIndex, currentViewIndex = component.currentViewIndex;
         if (component.direction === 1) {
             currentViewStartDate = this.getAdjacentViewStartTime(component, 1);
             toUpdateViewIndex = (currentViewIndex + 1) % 3;
             component.views[toUpdateViewIndex] = component.getViewData(currentViewStartDate);
-        } else if (component.direction === -1) {
+        }
+        else if (component.direction === -1) {
             currentViewStartDate = this.getAdjacentViewStartTime(component, -1);
             toUpdateViewIndex = (currentViewIndex + 2) % 3;
             component.views[toUpdateViewIndex] = component.getViewData(currentViewStartDate);
-        } else {
+        }
+        else {
             if (!component.views) {
                 currentViewData = [];
                 currentViewStartDate = component.range.startTime;
@@ -93,7 +76,8 @@ export class CalendarService {
                 currentViewStartDate = this.getAdjacentViewStartTime(component, -1);
                 currentViewData.push(component.getViewData(currentViewStartDate));
                 component.views = currentViewData;
-            } else {
+            }
+            else {
                 currentViewStartDate = component.range.startTime;
                 component.views[currentViewIndex] = component.getViewData(currentViewStartDate);
                 currentViewStartDate = this.getAdjacentViewStartTime(component, -1);
@@ -104,9 +88,14 @@ export class CalendarService {
                 component.views[toUpdateViewIndex] = component.getViewData(currentViewStartDate);
             }
         }
-    }
-
-    loadEvents() {
+    };
+    CalendarService.prototype.loadEvents = function () {
         this.eventSourceChanged.next();
-    }
-}
+    };
+    CalendarService = tslib_1.__decorate([
+        Injectable(),
+        tslib_1.__metadata("design:paramtypes", [])
+    ], CalendarService);
+    return CalendarService;
+}());
+export { CalendarService };
