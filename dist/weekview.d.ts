@@ -1,25 +1,20 @@
 import { IonSlides } from '@ionic/angular';
 import { OnInit, OnChanges, EventEmitter, SimpleChanges, TemplateRef, ElementRef } from '@angular/core';
-import { ICalendarComponent, IDisplayEvent, IEvent, ITimeSelected, IRange, IWeekView, IWeekViewRow, IWeekViewDateRow, CalendarMode, IDateFormatter, IDisplayWeekViewHeader } from './calendar';
+import { ICalendarComponent, IDisplayEvent, IEvent, ITimeSelected, IRange, IWeekView, IWeekViewRow, CalendarMode, IDateFormatter, IWeekViewDateRow } from './calendar';
 import { CalendarService } from './calendar.service';
-import { IWeekViewNormalEventSectionTemplateContext } from "./calendar";
 export declare class WeekViewComponent implements ICalendarComponent, OnInit, OnChanges {
     private calendarService;
     private elm;
     slider: IonSlides;
     class: boolean;
-    weekviewHeaderTemplate: TemplateRef<IDisplayWeekViewHeader>;
     weekviewNormalEventTemplate: TemplateRef<IDisplayEvent>;
-    weekviewNormalEventSectionTemplate: TemplateRef<IWeekViewNormalEventSectionTemplateContext>;
-    weekviewInactiveNormalEventSectionTemplate: TemplateRef<IWeekViewNormalEventSectionTemplateContext>;
     formatWeekTitle: string;
     formatWeekViewDayHeader: string;
     formatHourColumn: string;
     startingDayWeek: number;
-    roomSource: string[];
     hourParts: number;
     eventSource: IEvent[];
-    autoSelect: boolean;
+    roomSource: string[];
     markDisabled: (date: Date) => boolean;
     locale: string;
     dateFormatter: IDateFormatter;
@@ -30,8 +25,8 @@ export declare class WeekViewComponent implements ICalendarComponent, OnInit, On
     lockSwipes: boolean;
     startHour: number;
     endHour: number;
+    spaceBetween: number;
     sliderOptions: any;
-    hourSegments: number;
     onRangeChanged: EventEmitter<IRange>;
     onEventSelected: EventEmitter<IEvent>;
     onTimeSelected: EventEmitter<ITimeSelected>;
@@ -45,8 +40,8 @@ export declare class WeekViewComponent implements ICalendarComponent, OnInit, On
     private callbackOnInit;
     private currentDateChangedFromParentSubscription;
     private eventSourceChangedSubscription;
-    roomLabels: string[];
-    initScrollPosition: number;
+    private roomLabels;
+    private initScrollPosition;
     private formatDayHeader;
     private formatTitle;
     private formatHourColumnLabel;
@@ -64,10 +59,10 @@ export declare class WeekViewComponent implements ICalendarComponent, OnInit, On
     getViewData(startTime: Date): IWeekView;
     getRange(currentDate: Date): IRange;
     onDataLoaded(): void;
+    daysBetween: (date1: Date, date2: Date) => number;
     refreshView(): void;
     getTitle(): string;
-    getHighlightClass(date: IWeekViewDateRow): string;
     select(selectedTime: Date, events: IDisplayEvent[]): void;
+    eventSelected(event: IEvent): void;
     setScrollPosition(scrollPosition: number): void;
-    daysBetween: (date1: Date, date2: Date) => number;
 }
