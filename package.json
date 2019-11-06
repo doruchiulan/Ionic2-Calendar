@@ -1,13 +1,14 @@
 {
-    "name": "ionic2-calendar",
-    "version": "0.5.7",
-    "description": "Ionic2 calendar component",
+    "name": "ionic2-calendar-scheduler",
+    "version": "0.5.8",
+    "description": "Ionic5 calendar scheduler component",
     "keywords": [
         "Ionic2",
-        "calendar"
+        "calendar",
+        "scheduler"
     ],
     "author": {
-        "name": "twinssbc"
+        "name": "Doru Chiulan"
     },
     "license": "MIT",
     "repository": {
