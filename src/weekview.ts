@@ -10,7 +10,7 @@ import { IWeekViewNormalEventSectionTemplateContext } from "./calendar";
 @Component({
     selector: 'weekview',
     template: `
-        <ion-slides #weekSlider (ionSlideDidChange)="onSlideChanged()" class="slides-container">
+        <ion-slides #weekSlider [options]="sliderOptions" [dir]="dir" (ionSlideDidChange)="onSlideChanged()" class="slides-container">
             <ion-slide class="slide-container">
                 <table class="table table-bordered table-fixed weekview-header">
                     <thead>
@@ -152,7 +152,7 @@ import { IWeekViewNormalEventSectionTemplateContext } from "./calendar";
                     <init-position-scroll class="weekview-normal-event-container" [initPosition]="initScrollPosition">
                         <table class="table table-bordered table-fixed weekview-normal-event-table">
                             <tbody>
-                            <tr *ngFor="let room of views[0].roomData; let i = index">
+                            <tr *ngFor="let room of views[2].roomData; let i = index">
                                 <td class="calendar-hour-column text-center">
                                     {{roomLabels[i]}}
                                 </td>
@@ -310,6 +310,7 @@ export class WeekViewComponent implements ICalendarComponent, OnInit, OnChanges 
     @Input() autoSelect:boolean = true;
     @Input() locale:string;
     @Input() dateFormatter:IDateFormatter;
+    public dir:string = "";
     @Input() scrollToHour:number = 0;
     @Input() startHour:number;
     @Input() endHour:number;

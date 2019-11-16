@@ -102,13 +102,13 @@ export enum Step {
                                  'height': '100%',
                                  'margin-left': displayBooking.startedPreviousWeek ? '0%' : '50%'}">
                     <ng-template [ngTemplateOutlet]="eventTemplate"
-                                 [ngTemplateOutletContext]="{displayEvent:displayBooking}"></ng-template>
+                                 [ngTemplateOutletContext]="{booking:displayBooking}"></ng-template>
                 </div>
             </div>
         </ng-template>
         
-        <div [ngSwitch]="calendarMode" class="{{calendarMode}}view-container">
-            <weekview *ngSwitchCase="'week'" [formatWeekTitle]="formatWeekTitle"
+        <div class="weekview-container">
+            <weekview [formatWeekTitle]="formatWeekTitle"
                       [formatWeekViewDayHeader]="formatWeekViewDayHeader" [formatHourColumn]="formatHourColumn"
                       [startingDayWeek]="startingDayWeek" [autoSelect]="autoSelect" [bookingsSource]="bookingsSource"
                       [roomNamesSource]="roomNamesSource"
@@ -117,7 +117,8 @@ export enum Step {
                       [weekviewNormalEventSectionTemplate]="weekviewNormalEventSectionTemplate||defaultNormalEventSectionTemplate"
                       [locale]="locale" [dateFormatter]="dateFormatter" [startHour]="startHour" [endHour]="endHour" (onRangeChanged)="rangeChanged($event)"
                       (onEventSelected)="eventSelected($event)"
-                      (onTitleChanged)="titleChanged($event)"></weekview>
+                      (onTitleChanged)="titleChanged($event)">
+            </weekview>
         </div>`,
     styles: [`
         :host > div { height: 100%; }
