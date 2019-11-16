@@ -4,9 +4,11 @@ import { Subscription } from 'rxjs';
 import { CalendarService } from './calendar.service';
 
 export interface IBooking {
-    endTime: Date;
-    startTime: Date;
+    endDate: Date;
+    startDate: Date;
     title: string;
+    room: number;
+    phone: string;
 }
 
 export interface IRange {
@@ -18,42 +20,34 @@ export interface IView {
 }
 
 export interface IWeekView extends IView {
-    dates: IWeekViewDateRow[];
-    rows: IWeekViewRow[][];
+    roomData: IWeekViewRow[][];
+    dayHeaderRow: IWeekViewDayHeaderRow[];
 }
 
-export interface IWeekViewDateRow {
-    current?: boolean;
+export interface IWeekViewDayHeaderRow {
     date: Date;
-    events: IDisplayEvent[];
-    hasEvent?: boolean;
-    selected?: boolean;
-    dayHeader: string;
+    dayHeaderString: string;
 }
 
 export interface IWeekViewRow {
-    events: IDisplayEvent[];
-    time: Date;
+    roomEvents: IDisplayBooking[];
+    roomName: string;
 }
 
-export interface IDisplayEvent {
-    endIndex: number;
-    endOffset?: number;
+export interface IDisplayBooking {
+    startedPreviousWeek: boolean
     event: IBooking;
-    startIndex: number;
-    startOffset?: number;
-    overlapNumber?: number;
-    position?: number;
+    days: number;
 }
 
 export interface IDisplayWeekViewHeader {
-    viewDate: IWeekViewDateRow;
+    viewDate: IWeekViewDayHeaderRow;
 }
 
 export interface ICalendarComponent {
     currentViewIndex: number;
     direction: number;
-    eventSource: IBooking[];
+    bookingsSource: IBooking[];
     getRange: { (date:Date): IRange; };
     getViewData: { (date:Date): IView };
     mode: CalendarMode;
@@ -70,8 +64,8 @@ export interface ITimeSelected {
 }
 
 export interface IWeekViewNormalEventSectionTemplateContext {
-    tm: IWeekViewRow,
-    eventTemplate: TemplateRef<IDisplayEvent>
+    roomDayData: IWeekViewRow,
+    eventTemplate: TemplateRef<IBooking>
 }
 
 export interface IDateFormatter {
@@ -93,70 +87,38 @@ export enum Step {
 @Component({
     selector: 'calendar',
     template: `
-        <ng-template #defaultWeekviewHeaderTemplate let-viewDate="viewDate">
-            {{ viewDate.dayHeader }}
+        <ng-template #defaultWeekviewHeaderTemplate let-dayHeader="dayHeader"> 
+            {{ dayHeader.dayHeaderString }} 
         </ng-template>
-        <ng-template #defaultNormalEventTemplate let-displayEvent="displayEvent">
-            <div class="calendar-event-inner">{{displayEvent.event.title}}</div>
+        
+        <ng-template #defaultNormalEventTemplate let-booking="booking">
+            <div class="calendar-event-inner" [ngStyle]="{ 'background-color' : getBackgroundColor(booking.event.status), 'color' : getTextColor(booking.event.status) }">{{booking.event.title}}<br>{{booking.event.phone}}</div>
         </ng-template>
-        <ng-template #defaultWeekViewAllDayEventSectionTemplate let-day="day" let-eventTemplate="eventTemplate">
-            <div [ngClass]="{'calendar-event-wrap': day.events}" *ngIf="day.events"
-                 [ngStyle]="{height: 25*day.events.length+'px'}">
-                <div *ngFor="let displayEvent of day.events" class="calendar-event" tappable
-                     (click)="eventSelected(displayEvent.event)"
-                     [ngStyle]="{top: 25*displayEvent.position+'px', width: 100*(displayEvent.endIndex-displayEvent.startIndex)+'%', height: '25px'}">
+        
+        <ng-template #defaultNormalEventSectionTemplate let-roomDayData="roomDayData" let-eventTemplate="eventTemplate">
+            <div [ngClass]="{'calendar-event-wrap': roomDayData.roomEvents}" *ngIf="roomDayData.roomEvents" style="height: 100%">
+                <div *ngFor="let displayBooking of roomDayData.roomEvents" class="calendar-event-wrap" tappable (click)="eventSelected(displayBooking.event)"
+                     [ngStyle]="{'width': displayBooking.startedPreviousWeek ? 50 + (displayBooking.days - 1) * 100 + '%' : 100 + (displayBooking.days - 2) * 100 + '%',
+                                 'height': '100%',
+                                 'margin-left': displayBooking.startedPreviousWeek ? '0%' : '50%'}">
                     <ng-template [ngTemplateOutlet]="eventTemplate"
-                                 [ngTemplateOutletContext]="{displayEvent:displayEvent}">
-                    </ng-template>
+                                 [ngTemplateOutletContext]="{displayEvent:displayBooking}"></ng-template>
                 </div>
             </div>
         </ng-template>
-        <ng-template #defaultNormalEventSectionTemplate let-tm="tm" let-hourParts="hourParts"
-                     let-eventTemplate="eventTemplate">
-            <div [ngClass]="{'calendar-event-wrap': tm.events}" *ngIf="tm.events">
-                <div *ngFor="let displayEvent of tm.events" class="calendar-event" tappable
-                     (click)="eventSelected(displayEvent.event)"
-                     [ngStyle]="{top: (37*displayEvent.startOffset/hourParts)+'px',left: 100/displayEvent.overlapNumber*displayEvent.position+'%', width: 100/displayEvent.overlapNumber+'%', height: 37*(displayEvent.endIndex -displayEvent.startIndex - (displayEvent.endOffset + displayEvent.startOffset)/hourParts)+'px'}">
-                    <ng-template [ngTemplateOutlet]="eventTemplate"
-                                 [ngTemplateOutletContext]="{displayEvent:displayEvent}">
-                    </ng-template>
-                </div>
-            </div>
-        </ng-template>
-        <ng-template #defaultInactiveNormalEventSectionTemplate>
-        </ng-template>
-
+        
         <div [ngSwitch]="calendarMode" class="{{calendarMode}}view-container">
-            <weekview *ngSwitchCase="'week'"
-                      [formatWeekTitle]="formatWeekTitle"
-                      [formatWeekViewDayHeader]="formatWeekViewDayHeader"
-                      [formatHourColumn]="formatHourColumn"
-                      [startingDayWeek]="startingDayWeek"
-                      [hourParts]="hourParts"
-                      [autoSelect]="autoSelect"
-                      [hourSegments]="hourSegments"
-                      [eventSource]="roomSource"
-                      [markDisabled]="markDisabled"
+            <weekview *ngSwitchCase="'week'" [formatWeekTitle]="formatWeekTitle"
+                      [formatWeekViewDayHeader]="formatWeekViewDayHeader" [formatHourColumn]="formatHourColumn"
+                      [startingDayWeek]="startingDayWeek" [autoSelect]="autoSelect" [bookingsSource]="bookingsSource"
+                      [roomNamesSource]="roomNamesSource"
                       [weekviewHeaderTemplate]="weekviewHeaderTemplate||defaultWeekviewHeaderTemplate"
                       [weekviewNormalEventTemplate]="weekviewNormalEventTemplate||defaultNormalEventTemplate"
                       [weekviewNormalEventSectionTemplate]="weekviewNormalEventSectionTemplate||defaultNormalEventSectionTemplate"
-                      [locale]="locale"
-                      [dateFormatter]="dateFormatter"
-                      [dir]="dir"
-                      [scrollToHour]="scrollToHour"
-                      [preserveScrollPosition]="preserveScrollPosition"
-                      [lockSwipeToPrev]="lockSwipeToPrev"
-                      [lockSwipes]="lockSwipes"
-                      [startHour]="startHour"
-                      [endHour]="endHour"
-                      [sliderOptions]="sliderOptions"
-                      (onRangeChanged)="rangeChanged($event)"
+                      [locale]="locale" [dateFormatter]="dateFormatter" [startHour]="startHour" [endHour]="endHour" (onRangeChanged)="rangeChanged($event)"
                       (onEventSelected)="eventSelected($event)"
-                      (onTimeSelected)="timeSelected($event)"
-                      (onTitleChanged)="titleChanged($event)">
-            </weekview>
-        </div>
-    `,
+                      (onTitleChanged)="titleChanged($event)"></weekview>
+        </div>`,
     styles: [`
         :host > div { height: 100%; }
 
@@ -195,49 +157,31 @@ export class CalendarComponent implements OnInit {
         this.onCurrentDateChanged.emit(this._currentDate);
     }
 
-    @Input() roomSource:IBooking[] = [];
+    @Input() bookingsSource:IBooking[] = [];
+    @Input() roomNamesSource: string[] = [];
     @Input() calendarMode:CalendarMode = 'week';
-    @Input() formatDay:string = 'd';
-    @Input() formatDayHeader:string = 'EEE';
-    @Input() formatDayTitle:string = 'MMMM dd, yyyy';
     @Input() formatWeekTitle:string = 'MMMM yyyy, \'Week\' w';
-    @Input() formatMonthTitle:string = 'MMMM yyyy';
     @Input() formatWeekViewDayHeader:string = 'EEE d';
     @Input() formatHourColumn:string = 'ha';
-    @Input() showEventDetail:boolean = true;
-    @Input() startingDayMonth:number = 0;
     @Input() startingDayWeek:number = 0;
-    @Input() allDayLabel:string = 'all day';
-    @Input() noEventsLabel:string = 'No Events';
     @Input() queryMode:QueryMode = 'local';
     @Input() step:Step = Step.Hour;
     @Input() timeInterval:number = 60;
     @Input() autoSelect:boolean = true;
-    @Input() markDisabled:(date:Date) => boolean;
     @Input() weekviewHeaderTemplate:TemplateRef<IDisplayWeekViewHeader>;
-    @Input() weekviewNormalEventTemplate:TemplateRef<IDisplayEvent>;
+    @Input() weekviewNormalEventTemplate:TemplateRef<IDisplayBooking>;
     @Input() weekviewNormalEventSectionTemplate:TemplateRef<IWeekViewNormalEventSectionTemplateContext>;
-    @Input() weekviewInactiveNormalEventSectionTemplate:TemplateRef<IWeekViewNormalEventSectionTemplateContext>;
     @Input() dateFormatter:IDateFormatter;
-    @Input() dir:string = "";
-    @Input() scrollToHour:number = 0;
-    @Input() preserveScrollPosition:boolean = false;
-    @Input() lockSwipeToPrev:boolean = false;
-    @Input() lockSwipes:boolean = false;
     @Input() locale:string = "";
     @Input() startHour:number = 0;
     @Input() endHour:number = 24;
-    @Input() sliderOptions:any;
 
     @Output() onCurrentDateChanged = new EventEmitter<Date>();
     @Output() onRangeChanged = new EventEmitter<IRange>();
     @Output() onEventSelected = new EventEmitter<IBooking>();
-    @Output() onTimeSelected = new EventEmitter<ITimeSelected>();
     @Output() onTitleChanged = new EventEmitter<string>();
 
     private _currentDate:Date;
-    public hourParts = 1;
-    public hourSegments = 1;
     private currentDateChangedFromChildrenSubscription:Subscription;
 
     constructor(private calendarService:CalendarService, @Inject(LOCALE_ID) private appLocale:string) {
@@ -251,13 +195,6 @@ export class CalendarComponent implements OnInit {
             } else {
                 this.autoSelect = true;
             }
-        }
-        this.hourSegments = 60 / this.timeInterval;
-        this.hourParts = 60 / this.step;
-        if(this.hourParts <= this.hourSegments) {
-            this.hourParts = 1;
-        } else {
-            this.hourParts = this.hourParts / this.hourSegments;
         }
         this.startHour = parseInt(this.startHour.toString());
         this.endHour = parseInt(this.endHour.toString());
@@ -284,15 +221,33 @@ export class CalendarComponent implements OnInit {
         this.onEventSelected.emit(event);
     }
 
-    timeSelected(timeSelected:ITimeSelected) {
-        this.onTimeSelected.emit(timeSelected);
-    }
-
     titleChanged(title:string) {
         this.onTitleChanged.emit(title);
     }
 
     loadEvents() {
         this.calendarService.loadEvents();
+    }
+
+    getBackgroundColor(status: string) {
+        let statusInt = parseInt(status) || status;
+        if (statusInt == 0) {
+            return '#d50000'
+        } else if (statusInt == 1) {
+            return '#ffd600'
+        } else {
+            return '#00c853'
+        }
+    }
+
+    getTextColor(status: string) {
+        let statusInt = parseInt(status) || status;
+        if (statusInt == 0) {
+            return '#ffffff'
+        } else if (statusInt == 1) {
+            return '#000000'
+        } else {
+            return '#000000'
+        }
     }
 }

@@ -36,7 +36,7 @@ export class CalendarService {
 
     rangeChanged(component: ICalendarComponent) {
         if (this.queryMode === 'local') {
-            if (component.eventSource && component.onDataLoaded) {
+            if (component.bookingsSource && component.onDataLoaded) {
                 component.onDataLoaded();
             }
         } else if (this.queryMode === 'remote') {
@@ -44,7 +44,7 @@ export class CalendarService {
         }
     }
 
-    private getStep(mode: CalendarMode): { years: number; months: number; days: number; } {
+    private getStep(): { years: number; months: number; days: number; } {
         return {
             years: 0,
             months: 0,
@@ -53,7 +53,7 @@ export class CalendarService {
     }
 
     getAdjacentCalendarDate(mode: CalendarMode, direction: number): Date {
-        let step = this.getStep(mode);
+        let step = this.getStep();
         let calculateCalendarDate = new Date(this.currentDate.getTime()),
             year = calculateCalendarDate.getFullYear() + direction * step.years,
             month = calculateCalendarDate.getMonth() + direction * step.months,
