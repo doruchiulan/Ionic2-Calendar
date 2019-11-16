@@ -45,26 +45,11 @@ export class CalendarService {
     }
 
     private getStep(mode: CalendarMode): { years: number; months: number; days: number; } {
-        switch (mode) {
-            case 'month':
-                return {
-                    years: 0,
-                    months: 1,
-                    days: 0
-                };
-            case 'week':
-                return {
-                    years: 0,
-                    months: 0,
-                    days: 7
-                };
-            case 'day':
-                return {
-                    years: 0,
-                    months: 0,
-                    days: 1
-                };
-        }
+        return {
+            years: 0,
+            months: 0,
+            days: 7
+        };
     }
 
     getAdjacentCalendarDate(mode: CalendarMode, direction: number): Date {
@@ -76,12 +61,6 @@ export class CalendarService {
 
         calculateCalendarDate.setFullYear(year, month, date);
 
-        if (mode === 'month') {
-            let firstDayInNextMonth = new Date(year, month + 1, 1);
-            if (firstDayInNextMonth.getTime() <= calculateCalendarDate.getTime()) {
-                calculateCalendarDate = new Date(firstDayInNextMonth.getTime() - 24 * 60 * 60 * 1000);
-            }
-        }
         return calculateCalendarDate;
     }
 

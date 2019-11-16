@@ -3,9 +3,9 @@ import { IonSlides } from '@ionic/angular';
 import { Component, OnInit, OnChanges, HostBinding, Input, Output, EventEmitter, SimpleChanges, ViewChild, ViewEncapsulation, TemplateRef, ElementRef } from '@angular/core';
 import { Subscription } from 'rxjs';
 
-import { ICalendarComponent, IDisplayEvent, IEvent, ITimeSelected, IRange, IWeekView, IWeekViewRow, IWeekViewDateRow, CalendarMode, IDateFormatter, IDisplayWeekViewHeader } from './calendar';
+import { ICalendarComponent, IDisplayEvent, IBooking, ITimeSelected, IRange, IWeekView, IWeekViewRow, IWeekViewDateRow, CalendarMode, IDateFormatter, IDisplayWeekViewHeader } from './calendar';
 import { CalendarService } from './calendar.service';
-import { IDisplayAllDayEvent, IWeekViewAllDayEventSectionTemplateContext, IWeekViewNormalEventSectionTemplateContext } from "./calendar";
+import { IWeekViewNormalEventSectionTemplateContext } from "./calendar";
 
 @Component({
     selector: 'weekview',
@@ -27,22 +27,6 @@ import { IDisplayAllDayEvent, IWeekViewAllDayEventSectionTemplateContext, IWeekV
                     </thead>
                 </table>
                 <div *ngIf="0===currentViewIndex">
-                    <div class="weekview-allday-table">
-                        <div class="weekview-allday-label">{{allDayLabel}}</div>
-                        <div class="weekview-allday-content-wrapper scroll-content">
-                            <table class="table table-fixed weekview-allday-content-table">
-                                <tbody>
-                                <tr>
-                                    <td *ngFor="let day of views[0].dates" class="calendar-cell">
-                                        <ng-template [ngTemplateOutlet]="weekviewAllDayEventSectionTemplate"
-                                                     [ngTemplateOutletContext]="{day:day, eventTemplate:weekviewAllDayEventTemplate}">
-                                        </ng-template>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
                     <init-position-scroll class="weekview-normal-event-container" [initPosition]="initScrollPosition" [emitEvent]="preserveScrollPosition" (onScroll)="setScrollPosition($event)">
                         <table class="table table-bordered table-fixed weekview-normal-event-table">
                             <tbody>
@@ -61,22 +45,6 @@ import { IDisplayAllDayEvent, IWeekViewAllDayEventSectionTemplateContext, IWeekV
                     </init-position-scroll>
                 </div>
                 <div *ngIf="0!==currentViewIndex">
-                    <div class="weekview-allday-table">
-                        <div class="weekview-allday-label">{{allDayLabel}}</div>
-                        <div class="weekview-allday-content-wrapper scroll-content">
-                            <table class="table table-fixed weekview-allday-content-table">
-                                <tbody>
-                                <tr>
-                                    <td *ngFor="let day of views[0].dates" class="calendar-cell">
-                                        <ng-template [ngTemplateOutlet]="weekviewInactiveAllDayEventSectionTemplate"
-                                                     [ngTemplateOutletContext]="{day:day}">
-                                        </ng-template>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
                     <init-position-scroll class="weekview-normal-event-container" [initPosition]="initScrollPosition">
                         <table class="table table-bordered table-fixed weekview-normal-event-table">
                             <tbody>
@@ -85,7 +53,7 @@ import { IDisplayAllDayEvent, IWeekViewAllDayEventSectionTemplateContext, IWeekV
                                     {{hourColumnLabels[i]}}
                                 </td>
                                 <td *ngFor="let tm of row" class="calendar-cell">
-                                    <ng-template [ngTemplateOutlet]="weekviewInactiveNormalEventSectionTemplate"
+                                    <ng-template [ngTemplateOutlet]="weekviewNormalEventSectionTemplate"
                                                  [ngTemplateOutletContext]="{tm:tm, hourParts: hourParts}">
                                     </ng-template>
                                 </td>
@@ -111,22 +79,6 @@ import { IDisplayAllDayEvent, IWeekViewAllDayEventSectionTemplateContext, IWeekV
                     </thead>
                 </table>
                 <div *ngIf="1===currentViewIndex">
-                    <div class="weekview-allday-table">
-                        <div class="weekview-allday-label">{{allDayLabel}}</div>
-                        <div class="weekview-allday-content-wrapper scroll-content">
-                            <table class="table table-fixed weekview-allday-content-table">
-                                <tbody>
-                                <tr>
-                                    <td *ngFor="let day of views[1].dates" class="calendar-cell">
-                                        <ng-template [ngTemplateOutlet]="weekviewAllDayEventSectionTemplate"
-                                                     [ngTemplateOutletContext]="{day:day, eventTemplate:weekviewAllDayEventTemplate}">
-                                        </ng-template>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
                     <init-position-scroll class="weekview-normal-event-container" [initPosition]="initScrollPosition" [emitEvent]="preserveScrollPosition" (onScroll)="setScrollPosition($event)">
                         <table class="table table-bordered table-fixed weekview-normal-event-table">
                             <tbody>
@@ -147,22 +99,6 @@ import { IDisplayAllDayEvent, IWeekViewAllDayEventSectionTemplateContext, IWeekV
                     </init-position-scroll>
                 </div>
                 <div *ngIf="1!==currentViewIndex">
-                    <div class="weekview-allday-table">
-                        <div class="weekview-allday-label">{{allDayLabel}}</div>
-                        <div class="weekview-allday-content-wrapper scroll-content">
-                            <table class="table table-fixed weekview-allday-content-table">
-                                <tbody>
-                                <tr>
-                                    <td *ngFor="let day of views[1].dates" class="calendar-cell">
-                                        <ng-template [ngTemplateOutlet]="weekviewInactiveAllDayEventSectionTemplate"
-                                                     [ngTemplateOutletContext]="{day:day}">
-                                        </ng-template>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
                     <init-position-scroll class="weekview-normal-event-container" [initPosition]="initScrollPosition">
                         <table class="table table-bordered table-fixed weekview-normal-event-table">
                             <tbody>
@@ -172,7 +108,7 @@ import { IDisplayAllDayEvent, IWeekViewAllDayEventSectionTemplateContext, IWeekV
                                 </td>
                                 <td *ngFor="let tm of row" class="calendar-cell">
                                     <div [ngClass]="{'calendar-event-wrap': tm.events}" *ngIf="tm.events">
-                                        <ng-template [ngTemplateOutlet]="weekviewInactiveNormalEventSectionTemplate"
+                                        <ng-template [ngTemplateOutlet]="weekviewNormalEventSectionTemplate"
                                                      [ngTemplateOutletContext]="{tm:tm, hourParts: hourParts}">
                                         </ng-template>
                                     </div>
@@ -199,22 +135,6 @@ import { IDisplayAllDayEvent, IWeekViewAllDayEventSectionTemplateContext, IWeekV
                     </thead>
                 </table>
                 <div *ngIf="2===currentViewIndex">
-                    <div class="weekview-allday-table">
-                        <div class="weekview-allday-label">{{allDayLabel}}</div>
-                        <div class="weekview-allday-content-wrapper scroll-content">
-                            <table class="table table-fixed weekview-allday-content-table">
-                                <tbody>
-                                <tr>
-                                    <td *ngFor="let day of views[2].dates" class="calendar-cell">
-                                        <ng-template [ngTemplateOutlet]="weekviewAllDayEventSectionTemplate"
-                                                     [ngTemplateOutletContext]="{day:day, eventTemplate:weekviewAllDayEventTemplate}">
-                                        </ng-template>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
                     <init-position-scroll class="weekview-normal-event-container" [initPosition]="initScrollPosition" [emitEvent]="preserveScrollPosition" (onScroll)="setScrollPosition($event)">
                         <table class="table table-bordered table-fixed weekview-normal-event-table">
                             <tbody>
@@ -235,22 +155,6 @@ import { IDisplayAllDayEvent, IWeekViewAllDayEventSectionTemplateContext, IWeekV
                     </init-position-scroll>
                 </div>
                 <div *ngIf="2!==currentViewIndex">
-                    <div class="weekview-allday-table">
-                        <div class="weekview-allday-label">{{allDayLabel}}</div>
-                        <div class="weekview-allday-content-wrapper scroll-content">
-                            <table class="table table-fixed weekview-allday-content-table">
-                                <tbody>
-                                <tr>
-                                    <td *ngFor="let day of views[2].dates" class="calendar-cell">
-                                        <ng-template [ngTemplateOutlet]="weekviewInactiveAllDayEventSectionTemplate"
-                                                     [ngTemplateOutletContext]="{day:day}">
-                                        </ng-template>
-                                    </td>
-                                </tr>
-                                </tbody>
-                            </table>
-                        </div>
-                    </div>
                     <init-position-scroll class="weekview-normal-event-container" [initPosition]="initScrollPosition">
                         <table class="table table-bordered table-fixed weekview-normal-event-table">
                             <tbody>
@@ -260,7 +164,7 @@ import { IDisplayAllDayEvent, IWeekViewAllDayEventSectionTemplateContext, IWeekV
                                 </td>
                                 <td *ngFor="let tm of row" class="calendar-cell">
                                     <div [ngClass]="{'calendar-event-wrap': tm.events}" *ngIf="tm.events">
-                                        <ng-template [ngTemplateOutlet]="weekviewInactiveNormalEventSectionTemplate"
+                                        <ng-template [ngTemplateOutlet]="weekviewNormalEventSectionTemplate"
                                                      [ngTemplateOutletContext]="{tm:tm, hourParts: hourParts}">
                                         </ng-template>
                                     </div>
@@ -332,13 +236,6 @@ import { IDisplayAllDayEvent, IWeekViewAllDayEventSectionTemplateContext, IWeekV
           height: 100%;
         }
 
-        .calendar-event {
-          position: absolute;
-          padding: 2px;
-          cursor: pointer;
-          z-index: 10000;
-        }
-
         .calendar-cell {
           padding: 0 !important;
           height: 37px;
@@ -352,50 +249,9 @@ import { IDisplayAllDayEvent, IWeekViewAllDayEventSectionTemplateContext, IWeekV
             display: block;
         }
 
-        .weekview-allday-label {
-          float: left;
-          height: 100%;
-          line-height: 50px;
-          text-align: center;
-          width: 50px;
-          border-left: 1px solid #ddd;
-        }
-
-        [dir="rtl"] .weekview-allday-label {
-            float: right;
-            border-right: 1px solid #ddd;
-        }
-
-        .weekview-allday-content-wrapper {
-          margin-left: 50px;
-          overflow: hidden;
-          height: 51px;
-        }
-
-        [dir="rtl"] .weekview-allday-content-wrapper {
-          margin-left: 0;
-          margin-right: 50px;
-        }
-
-        .weekview-allday-content-table {
-          min-height: 50px;
-        }
-
-        .weekview-allday-content-table td {
-          border-left: 1px solid #ddd;
-          border-right: 1px solid #ddd;
-        }
-
         .weekview-header th {
           overflow: hidden;
           white-space: nowrap;
-          font-size: 14px;
-        }
-
-        .weekview-allday-table {
-          height: 50px;
-          position: relative;
-          border-bottom: 1px solid #ddd;
           font-size: 14px;
         }
 
@@ -410,11 +266,6 @@ import { IDisplayAllDayEvent, IWeekViewAllDayEventSectionTemplateContext, IWeekV
           font-size: 14px;
         }
 
-        .scroll-content {
-            overflow-y: auto;
-            overflow-x: hidden;
-        }
-        
         ::-webkit-scrollbar,
         *::-webkit-scrollbar {
             display: none;
@@ -427,13 +278,9 @@ import { IDisplayAllDayEvent, IWeekViewAllDayEventSectionTemplateContext, IWeekV
         }
 
         @media (max-width: 750px) {
-          .weekview-allday-label, .calendar-hour-column {
+          .calendar-hour-column {
             width: 31px;
             font-size: 12px;
-          }
-
-          .weekview-allday-label {
-            padding-top: 4px;
           }
 
           .table > tbody > tr > td.calendar-hour-column {
@@ -448,42 +295,24 @@ import { IDisplayAllDayEvent, IWeekViewAllDayEventSectionTemplateContext, IWeekV
             padding-right: 0;
             font-size: 12px;
           }
-
-          .weekview-allday-label {
-            line-height: 20px;
-          }
-
-          .weekview-allday-content-wrapper {
-            margin-left: 31px;
-          }
-
-          [dir="rtl"] .weekview-allday-content-wrapper {
-            margin-left: 0;
-            margin-right: 31px;
-          }
         }
     `],
     encapsulation: ViewEncapsulation.None
 })
 export class WeekViewComponent implements ICalendarComponent, OnInit, OnChanges {
-    @ViewChild('weekSlider') slider:IonSlides;
+    @ViewChild('weekSlider', {static: false}) slider:IonSlides;
     @HostBinding('class.weekview') class = true;
 
     @Input() weekviewHeaderTemplate:TemplateRef<IDisplayWeekViewHeader>;
-    @Input() weekviewAllDayEventTemplate:TemplateRef<IDisplayAllDayEvent>;
     @Input() weekviewNormalEventTemplate:TemplateRef<IDisplayEvent>;
-    @Input() weekviewAllDayEventSectionTemplate:TemplateRef<IWeekViewAllDayEventSectionTemplateContext>;
     @Input() weekviewNormalEventSectionTemplate:TemplateRef<IWeekViewNormalEventSectionTemplateContext>;
-    @Input() weekviewInactiveAllDayEventSectionTemplate:TemplateRef<IWeekViewAllDayEventSectionTemplateContext>;
-    @Input() weekviewInactiveNormalEventSectionTemplate:TemplateRef<IWeekViewNormalEventSectionTemplateContext>;
 
     @Input() formatWeekTitle:string;
     @Input() formatWeekViewDayHeader:string;
     @Input() formatHourColumn:string;
     @Input() startingDayWeek:number;
-    @Input() allDayLabel:string;
     @Input() hourParts:number;
-    @Input() eventSource:IEvent[];
+    @Input() eventSource:IBooking[];
     @Input() autoSelect:boolean = true;
     @Input() markDisabled:(date:Date) => boolean;
     @Input() locale:string;
@@ -499,7 +328,7 @@ export class WeekViewComponent implements ICalendarComponent, OnInit, OnChanges 
     @Input() hourSegments:number;
 
     @Output() onRangeChanged = new EventEmitter<IRange>();
-    @Output() onEventSelected = new EventEmitter<IEvent>();
+    @Output() onEventSelected = new EventEmitter<IBooking>();
     @Output() onTimeSelected = new EventEmitter<ITimeSelected>();
     @Output() onTitleChanged = new EventEmitter<string>(true);
 
@@ -594,7 +423,7 @@ export class WeekViewComponent implements ICalendarComponent, OnInit, OnChanges 
     ngOnChanges(changes:SimpleChanges) {
         if (!this.inited) return;
 
-        let eventSourceChange = changes['eventSource'];
+        let eventSourceChange = changes['roomSource'];
         if (eventSourceChange && eventSourceChange.currentValue) {
             this.onDataLoaded();
         }
@@ -786,134 +615,96 @@ export class WeekViewComponent implements ICalendarComponent, OnInit, OnChanges 
             let eventStartTime = new Date(event.startTime.getTime());
             let eventEndTime = new Date(event.endTime.getTime());
 
-            if (event.allDay) {
-                if (eventEndTime <= utcStartTime || eventStartTime >= utcEndTime) {
-                    continue;
-                } else {
-                    allDayEventInRange = true;
-
-                    let allDayStartIndex:number;
-                    if (eventStartTime <= utcStartTime) {
-                        allDayStartIndex = 0;
-                    } else {
-                        allDayStartIndex = Math.floor((eventStartTime.getTime() - utcStartTime.getTime()) / oneDay);
-                    }
-
-                    let allDayEndIndex:number;
-                    if (eventEndTime >= utcEndTime) {
-                        allDayEndIndex = Math.ceil((utcEndTime.getTime() - utcStartTime.getTime()) / oneDay);
-                    } else {
-                        allDayEndIndex = Math.ceil((eventEndTime.getTime() - utcStartTime.getTime()) / oneDay);
-                    }
-
-                    let displayAllDayEvent:IDisplayEvent = {
-                        event: event,
-                        startIndex: allDayStartIndex,
-                        endIndex: allDayEndIndex
-                    };
-
-                    let eventSet = dates[allDayStartIndex].events;
-                    if (eventSet) {
-                        eventSet.push(displayAllDayEvent);
-                    } else {
-                        eventSet = [];
-                        eventSet.push(displayAllDayEvent);
-                        dates[allDayStartIndex].events = eventSet;
-                    }
-                    dates[allDayStartIndex].hasEvent = true;
-                }
+            if (eventEndTime <= startTime || eventStartTime >= endTime) {
+                continue;
             } else {
-                if (eventEndTime <= startTime || eventStartTime >= endTime) {
-                    continue;
+                normalEventInRange = true;
+
+                let timeDiff:number;
+                let timeDifferenceStart:number;
+                if (eventStartTime <= startTime) {
+                    timeDifferenceStart = 0;
                 } else {
-                    normalEventInRange = true;
+                    timeDiff = eventStartTime.getTime() - startTime.getTime() - (eventStartTime.getTimezoneOffset() - startTime.getTimezoneOffset()) * 60000;
+                    timeDifferenceStart = timeDiff / oneHour * this.hourSegments;
+                }
 
-                    let timeDiff:number;
-                    let timeDifferenceStart:number;
-                    if (eventStartTime <= startTime) {
-                        timeDifferenceStart = 0;
+                let timeDifferenceEnd:number;
+                if (eventEndTime >= endTime) {
+                    timeDiff = endTime.getTime() - startTime.getTime() - (endTime.getTimezoneOffset() - startTime.getTimezoneOffset()) * 60000;
+                    timeDifferenceEnd = timeDiff / oneHour * this.hourSegments;
+                } else {
+                    timeDiff = eventEndTime.getTime() - startTime.getTime() - (eventEndTime.getTimezoneOffset() - startTime.getTimezoneOffset()) * 60000;
+                    timeDifferenceEnd = timeDiff / oneHour * this.hourSegments;
+                }
+
+                let startIndex = Math.floor(timeDifferenceStart),
+                    endIndex = Math.ceil(timeDifferenceEnd - eps),
+                    startRowIndex = startIndex % allRows,
+                    dayIndex = Math.floor(startIndex / allRows),
+                    endOfDay = dayIndex * allRows,
+                    startOffset = 0,
+                    endOffset = 0;
+
+                if (this.hourParts !== 1) {
+                    if (startRowIndex < rangeStartRowIndex) {
+                        startOffset = 0;
                     } else {
-                        timeDiff = eventStartTime.getTime() - startTime.getTime() - (eventStartTime.getTimezoneOffset() - startTime.getTimezoneOffset()) * 60000;
-                        timeDifferenceStart = timeDiff / oneHour * this.hourSegments;
+                        startOffset = Math.floor((timeDifferenceStart - startIndex) * this.hourParts);
                     }
+                }
 
-                    let timeDifferenceEnd:number;
-                    if (eventEndTime >= endTime) {
-                        timeDiff = endTime.getTime() - startTime.getTime() - (endTime.getTimezoneOffset() - startTime.getTimezoneOffset()) * 60000;
-                        timeDifferenceEnd = timeDiff / oneHour * this.hourSegments;
+                do {
+                    endOfDay += allRows;
+                    let endRowIndex:number;
+                    if (endOfDay < endIndex) {
+                        endRowIndex = allRows;
                     } else {
-                        timeDiff = eventEndTime.getTime() - startTime.getTime() - (eventEndTime.getTimezoneOffset() - startTime.getTimezoneOffset()) * 60000;
-                        timeDifferenceEnd = timeDiff / oneHour * this.hourSegments;
-                    }
-
-                    let startIndex = Math.floor(timeDifferenceStart),
-                        endIndex = Math.ceil(timeDifferenceEnd - eps),
-                        startRowIndex = startIndex % allRows,
-                        dayIndex = Math.floor(startIndex / allRows),
-                        endOfDay = dayIndex * allRows,
-                        startOffset = 0,
-                        endOffset = 0;
-
-                    if (this.hourParts !== 1) {
-                        if (startRowIndex < rangeStartRowIndex) {
-                            startOffset = 0;
-                        } else {
-                            startOffset = Math.floor((timeDifferenceStart - startIndex) * this.hourParts);
-                        }
-                    }
-
-                    do {
-                        endOfDay += allRows;
-                        let endRowIndex:number;
-                        if (endOfDay < endIndex) {
+                        if(endOfDay === endIndex) {
                             endRowIndex = allRows;
                         } else {
-                            if(endOfDay === endIndex) {
-                                endRowIndex = allRows;
+                            endRowIndex = endIndex % allRows;
+                        }
+                        if (this.hourParts !== 1) {
+                            if (endRowIndex > rangeEndRowIndex) {
+                                endOffset = 0;
                             } else {
-                                endRowIndex = endIndex % allRows;
-                            }
-                            if (this.hourParts !== 1) {
-                                if (endRowIndex > rangeEndRowIndex) {
-                                    endOffset = 0;
-                                } else {
-                                    endOffset = Math.floor((endIndex - timeDifferenceEnd) * this.hourParts);
-                                }
+                                endOffset = Math.floor((endIndex - timeDifferenceEnd) * this.hourParts);
                             }
                         }
-                        if(startRowIndex < rangeStartRowIndex) {
-                            startRowIndex = 0;
-                        } else {
-                            startRowIndex -= rangeStartRowIndex;
-                        }
-                        if(endRowIndex > rangeEndRowIndex) {
-                            endRowIndex = rangeEndRowIndex;
-                        }
-                        endRowIndex -= rangeStartRowIndex;
-
-                        if(startRowIndex < endRowIndex) {
-                            let displayEvent = {
-                                event: event,
-                                startIndex: startRowIndex,
-                                endIndex: endRowIndex,
-                                startOffset: startOffset,
-                                endOffset: endOffset
-                            };
-                            let eventSet = rows[startRowIndex][dayIndex].events;
-                            if (eventSet) {
-                                eventSet.push(displayEvent);
-                            } else {
-                                eventSet = [];
-                                eventSet.push(displayEvent);
-                                rows[startRowIndex][dayIndex].events = eventSet;
-                            }
-                            dates[dayIndex].hasEvent = true;
-                        }
+                    }
+                    if(startRowIndex < rangeStartRowIndex) {
                         startRowIndex = 0;
-                        startOffset = 0;
-                        dayIndex += 1;
-                    } while (endOfDay < endIndex);
-                }
+                    } else {
+                        startRowIndex -= rangeStartRowIndex;
+                    }
+                    if(endRowIndex > rangeEndRowIndex) {
+                        endRowIndex = rangeEndRowIndex;
+                    }
+                    endRowIndex -= rangeStartRowIndex;
+
+                    if(startRowIndex < endRowIndex) {
+                        let displayEvent = {
+                            event: event,
+                            startIndex: startRowIndex,
+                            endIndex: endRowIndex,
+                            startOffset: startOffset,
+                            endOffset: endOffset
+                        };
+                        let eventSet = rows[startRowIndex][dayIndex].events;
+                        if (eventSet) {
+                            eventSet.push(displayEvent);
+                        } else {
+                            eventSet = [];
+                            eventSet.push(displayEvent);
+                            rows[startRowIndex][dayIndex].events = eventSet;
+                        }
+                        dates[dayIndex].hasEvent = true;
+                    }
+                    startRowIndex = 0;
+                    startOffset = 0;
+                    dayIndex += 1;
+                } while (endOfDay < endIndex);
             }
         }
 
