@@ -1,16 +1,30 @@
 import { DatePipe } from '@angular/common';
 import { IonSlides } from '@ionic/angular';
-import { Component, OnInit, OnChanges, HostBinding, Input, Output, EventEmitter, SimpleChanges, ViewChild, ViewEncapsulation, TemplateRef, ElementRef } from '@angular/core';
+import {
+    Component,
+    OnInit,
+    OnChanges,
+    HostBinding,
+    Input,
+    Output,
+    EventEmitter,
+    SimpleChanges,
+    ViewChild,
+    ViewEncapsulation,
+    TemplateRef,
+    AfterViewInit, OnDestroy
+} from '@angular/core';
 import { Subscription } from 'rxjs';
 
-import { ICalendarComponent, IDisplayBooking, IBooking, ITimeSelected, IRange, IWeekView, IWeekViewRow, IWeekViewDayHeaderRow, CalendarMode, IDateFormatter, IDisplayWeekViewHeader } from './calendar';
+import { ICalendarComponent, IDisplayBooking, IBooking, IRange, IWeekView, IWeekViewRow, IWeekViewDayHeaderRow, CalendarMode, IDateFormatter, IDisplayWeekViewHeader } from './calendar';
 import { CalendarService } from './calendar.service';
 import { IWeekViewNormalEventSectionTemplateContext } from "./calendar";
 
+// noinspection CssUnusedSymbol
 @Component({
     selector: 'weekview',
     template: `
-        <ion-slides #weekSlider [options]="sliderOptions" [dir]="dir" (ionSlideDidChange)="onSlideChanged()" class="slides-container">
+        <ion-slides #weekSlider [options]="{loop: true}" [dir]="dir" (ionSlideDidChange)="onSlideChanged()" class="slides-container">
             <ion-slide class="slide-container">
                 <table class="table table-bordered table-fixed weekview-header">
                     <thead>
@@ -25,7 +39,7 @@ import { IWeekViewNormalEventSectionTemplateContext } from "./calendar";
                     </thead>
                 </table>
                 <div *ngIf="0===currentViewIndex">
-                    <init-position-scroll class="weekview-normal-event-container" [initPosition]="initScrollPosition" (onScroll)="setScrollPosition($event)">
+                    <init-position-scroll class="weekview-normal-event-container">
                         <table class="table table-bordered table-fixed weekview-normal-event-table">
                             <tbody>
                             <!-- For each room in this week view -->
@@ -45,7 +59,7 @@ import { IWeekViewNormalEventSectionTemplateContext } from "./calendar";
                     </init-position-scroll>
                 </div>
                 <div *ngIf="0!==currentViewIndex">
-                    <init-position-scroll class="weekview-normal-event-container" [initPosition]="initScrollPosition">
+                    <init-position-scroll class="weekview-normal-event-container">
                         <table class="table table-bordered table-fixed weekview-normal-event-table">
                             <tbody>
                             <tr *ngFor="let room of views[0].roomData; let i = index">
@@ -77,7 +91,7 @@ import { IWeekViewNormalEventSectionTemplateContext } from "./calendar";
                     </thead>
                 </table>
                 <div *ngIf="1===currentViewIndex">
-                    <init-position-scroll class="weekview-normal-event-container" [initPosition]="initScrollPosition" (onScroll)="setScrollPosition($event)">
+                    <init-position-scroll class="weekview-normal-event-container">
                         <table class="table table-bordered table-fixed weekview-normal-event-table">
                             <tbody>
                             <!-- For each room in this week view -->
@@ -97,7 +111,7 @@ import { IWeekViewNormalEventSectionTemplateContext } from "./calendar";
                     </init-position-scroll>
                 </div>
                 <div *ngIf="1!==currentViewIndex">
-                    <init-position-scroll class="weekview-normal-event-container" [initPosition]="initScrollPosition">
+                    <init-position-scroll class="weekview-normal-event-container">
                         <table class="table table-bordered table-fixed weekview-normal-event-table">
                             <tbody>
                             <tr *ngFor="let room of views[1].roomData; let i = index">
@@ -129,7 +143,7 @@ import { IWeekViewNormalEventSectionTemplateContext } from "./calendar";
                     </thead>
                 </table>
                 <div *ngIf="2===currentViewIndex">
-                    <init-position-scroll class="weekview-normal-event-container" [initPosition]="initScrollPosition" (onScroll)="setScrollPosition($event)">
+                    <init-position-scroll class="weekview-normal-event-container">
                         <table class="table table-bordered table-fixed weekview-normal-event-table">
                             <tbody>
                             <!-- For each room in this week view -->
@@ -149,7 +163,7 @@ import { IWeekViewNormalEventSectionTemplateContext } from "./calendar";
                     </init-position-scroll>
                 </div>
                 <div *ngIf="2!==currentViewIndex">
-                    <init-position-scroll class="weekview-normal-event-container" [initPosition]="initScrollPosition">
+                    <init-position-scroll class="weekview-normal-event-container">
                         <table class="table table-bordered table-fixed weekview-normal-event-table">
                             <tbody>
                             <tr *ngFor="let room of views[2].roomData; let i = index">
@@ -293,63 +307,50 @@ import { IWeekViewNormalEventSectionTemplateContext } from "./calendar";
     `],
     encapsulation: ViewEncapsulation.None
 })
-export class WeekViewComponent implements ICalendarComponent, OnInit, OnChanges {
+export class WeekViewComponent implements ICalendarComponent, OnInit, OnChanges, AfterViewInit, OnDestroy {
     @ViewChild('weekSlider', {static: false}) slider:IonSlides;
     @HostBinding('class.weekview') class = true;
 
     @Input() weekviewHeaderTemplate:TemplateRef<IDisplayWeekViewHeader>;
     @Input() weekviewNormalEventTemplate:TemplateRef<IDisplayBooking>;
     @Input() weekviewNormalEventSectionTemplate:TemplateRef<IWeekViewNormalEventSectionTemplateContext>;
-
-    @Input() formatWeekTitle:string;
+    @Input() formatViewTitle:string;
     @Input() formatWeekViewDayHeader:string;
-    @Input() formatHourColumn:string;
-    @Input() startingDayWeek:number;
     @Input() bookingsSource:IBooking[];
     @Input() roomNamesSource: string[];
-    @Input() autoSelect:boolean = true;
     @Input() locale:string;
     @Input() dateFormatter:IDateFormatter;
-    public dir:string = "";
-    @Input() scrollToHour:number = 0;
-    @Input() startHour:number;
-    @Input() endHour:number;
-    sliderOptions:any;
 
     @Output() onRangeChanged = new EventEmitter<IRange>();
     @Output() onEventSelected = new EventEmitter<IBooking>();
     @Output() onTitleChanged = new EventEmitter<string>(true);
 
-    public views:IWeekView[] = [];
-    public currentViewIndex = 0;
-    public range:IRange;
-    public direction = 0;
-    public mode:CalendarMode = 'week';
+    views: IWeekView[] = [];
+    range: IRange;
+    mode: CalendarMode = 'week';
+    roomLabels: string[];
+    currentViewIndex = 0;
+    direction = 0;
+    dir = "";
 
+    private startingDayWeek:number = 1;
     private inited = false;
     private callbackOnInit = true;
     private currentDateChangedFromParentSubscription:Subscription;
     private eventSourceChangedSubscription:Subscription;
-    public initScrollPosition:number;
     private formatDayHeader:(date:Date) => string;
     private formatTitle:(date:Date) => string;
-    private formatHourColumnLabel:(date:Date) => string;
-    private hourRange:number;
-    private roomLabels:string[];
 
-    constructor(private calendarService:CalendarService, private elm:ElementRef) {
+    constructor(private calendarService:CalendarService) {
     }
 
     ngOnInit() {
-        this.sliderOptions = {};
-        this.sliderOptions.loop = true;
-
-        this.hourRange = (this.endHour - this.startHour);
         if (this.dateFormatter && this.dateFormatter.formatWeekViewDayHeader) {
             this.formatDayHeader = this.dateFormatter.formatWeekViewDayHeader;
         } else {
             let datePipe = new DatePipe(this.locale);
             this.formatDayHeader = function (date:Date) {
+                // noinspection JSPotentiallyInvalidUsageOfClassThis
                 return datePipe.transform(date, this.formatWeekViewDayHeader);
             };
         }
@@ -359,16 +360,8 @@ export class WeekViewComponent implements ICalendarComponent, OnInit, OnChanges 
         } else {
             let datePipe = new DatePipe(this.locale);
             this.formatTitle = function (date:Date) {
-                return datePipe.transform(date, this.formatWeekTitle);
-            };
-        }
-
-        if (this.dateFormatter && this.dateFormatter.formatWeekViewHourColumn) {
-            this.formatHourColumnLabel = this.dateFormatter.formatWeekViewHourColumn;
-        } else {
-            let datePipe = new DatePipe(this.locale);
-            this.formatHourColumnLabel = function (date:Date) {
-                return datePipe.transform(date, this.formatHourColumn);
+                // noinspection JSPotentiallyInvalidUsageOfClassThis
+                return datePipe.transform(date, this.formatViewTitle);
             };
         }
 
@@ -376,7 +369,7 @@ export class WeekViewComponent implements ICalendarComponent, OnInit, OnChanges 
         this.roomLabels = this.getRoomLabels();
         this.inited = true;
 
-        this.currentDateChangedFromParentSubscription = this.calendarService.currentDateChangedFromParent$.subscribe(currentDate => {
+        this.currentDateChangedFromParentSubscription = this.calendarService.currentDateChangedFromParent$.subscribe(() => {
             this.refreshView();
         });
 
@@ -388,14 +381,6 @@ export class WeekViewComponent implements ICalendarComponent, OnInit, OnChanges 
     ngAfterViewInit() {
         let title = this.getTitle();
         this.onTitleChanged.emit(title);
-
-        // if (this.scrollToHour > 0) {
-        //     let hourColumns = this.elm.nativeElement.querySelector('.weekview-normal-event-container').querySelectorAll('.calendar-hour-column');
-        //     let me = this;
-        //     setTimeout(function () {
-        //         me.initScrollPosition = hourColumns[me.scrollToHour - me.startHour].offsetTop;
-        //     }, 50);
-        // }
     }
 
     ngOnChanges(changes:SimpleChanges) {
@@ -404,16 +389,6 @@ export class WeekViewComponent implements ICalendarComponent, OnInit, OnChanges 
         let eventSourceChange = changes['bookingsSource'];
         if (eventSourceChange && eventSourceChange.currentValue) {
             this.onDataLoaded();
-        }
-
-        let lockSwipeToPrev = changes['lockSwipeToPrev'];
-        if (lockSwipeToPrev) {
-            this.slider.lockSwipeToPrev(lockSwipeToPrev.currentValue);
-        }
-
-        let lockSwipes = changes['lockSwipes'];
-        if (lockSwipes) {
-            this.slider.lockSwipes(lockSwipes.currentValue);
         }
     }
 
@@ -435,8 +410,7 @@ export class WeekViewComponent implements ICalendarComponent, OnInit, OnChanges 
             return;
         }
 
-        let currentSlideIndex = this.slider.getActiveIndex(),
-            direction = 0,
+        let direction = 0,
             currentViewIndex = this.currentViewIndex;
 
         this.slider.getActiveIndex().then((currentSlideIndex) => {
@@ -445,11 +419,13 @@ export class WeekViewComponent implements ICalendarComponent, OnInit, OnChanges 
                 direction = 1;
             } else if (currentSlideIndex === 0 && currentViewIndex === 2) {
                 direction = 1;
+                // noinspection JSIgnoredPromiseFromCall
                 this.slider.slideTo(1, 0, false);
             } else if (currentViewIndex - currentSlideIndex === 1) {
                 direction = -1;
             } else if (currentSlideIndex === 2 && currentViewIndex === 0) {
                 direction = -1;
+                // noinspection JSIgnoredPromiseFromCall
                 this.slider.slideTo(3, 0, false);
             }
             this.currentViewIndex = currentSlideIndex;
@@ -507,7 +483,7 @@ export class WeekViewComponent implements ICalendarComponent, OnInit, OnChanges 
         return dates;
     }
 
-    getViewData(startTime:Date):IWeekView {
+    getViewData = (startTime:Date): IWeekView => {
         let dates = WeekViewComponent.getDates(startTime, 7);
         for (let i = 0; i < 7; i++) {
             dates[i].dayHeaderString = this.formatDayHeader(dates[i].date);
@@ -517,9 +493,9 @@ export class WeekViewComponent implements ICalendarComponent, OnInit, OnChanges 
             roomData: WeekViewComponent.createWeekRooms(this.roomNamesSource),
             dayHeaderRow: dates
         };
-    }
+    };
 
-    getRange(currentDate:Date):IRange {
+    getRange = (currentDate:Date): IRange => {
         let year = currentDate.getFullYear(),
             month = currentDate.getMonth(),
             date = currentDate.getDate(),
@@ -537,7 +513,7 @@ export class WeekViewComponent implements ICalendarComponent, OnInit, OnChanges 
             startTime: firstDayOfWeek,
             endTime: endTime
         };
-    }
+    };
 
     onDataLoaded() {
         let eventSource = this.bookingsSource,
@@ -562,41 +538,41 @@ export class WeekViewComponent implements ICalendarComponent, OnInit, OnChanges 
 
             if (eventEndTime < startTime || eventStartTime >= endTime) {
                 continue;
+            }
+
+            normalEventInRange = true;
+            let startedPreviousWeek = false;
+            let daysBetween = this.daysBetween(eventStartTime, eventEndTime);
+            let weekDayStartIndex = (event.startDate.getDay() + 6) % 7;
+
+            if (eventStartTime < startTime) {
+                startedPreviousWeek = true;
+                daysBetween = this.daysBetween(startTime, eventEndTime);
+                weekDayStartIndex = 0;
+            }
+
+            // Place events in current week
+            let displayEvent = {
+                event: event,
+                days: daysBetween,
+                startedPreviousWeek: startedPreviousWeek
+            };
+            let eventSet = rooms[event.room][weekDayStartIndex].roomEvents;
+            if (eventSet) {
+                eventSet.push(displayEvent);
             } else {
-                normalEventInRange = true;
-                let startedPreviousWeek = false;
-                let daysBetween = this.daysBetween(eventStartTime, eventEndTime);
-                let weekDayStartIndex = (event.startDate.getDay() + 6) % 7;
-
-                if (eventStartTime < startTime) {
-                    startedPreviousWeek = true;
-                    daysBetween = this.daysBetween(startTime, eventEndTime);
-                    weekDayStartIndex = 0;
-                }
-
-                // Place events in current week
-                let displayEvent = {
-                    event: event,
-                    days: daysBetween,
-                    startedPreviousWeek: startedPreviousWeek
-                };
-                let eventSet = rooms[event.room][weekDayStartIndex].roomEvents;
-                if (eventSet) {
-                    eventSet.push(displayEvent);
-                } else {
-                    eventSet = [];
-                    eventSet.push(displayEvent);
-                    rooms[event.room][weekDayStartIndex].roomEvents = eventSet;
-                }
+                eventSet = [];
+                eventSet.push(displayEvent);
+                rooms[event.room][weekDayStartIndex].roomEvents = eventSet;
             }
         }
     }
 
     daysBetween = function( date1: Date, date2: Date ) {   //Get 1 day in milliseconds
-        var one_day = 1000 * 60 * 60 * 24;    // Convert both dates to milliseconds
-        var date1_ms = date1.getTime();
-        var date2_ms = date2.getTime();    // Calculate the difference in milliseconds
-        var difference_ms = date2_ms - date1_ms;        // Convert back to days and return
+        const one_day = 1000 * 60 * 60 * 24;    // Convert both dates to milliseconds
+        const date1_ms = date1.getTime();
+        const date2_ms = date2.getTime();    // Calculate the difference in milliseconds
+        const difference_ms = date2_ms - date1_ms;        // Convert back to days and return
         return Math.round(difference_ms / one_day) + 1;
     };
 
@@ -618,14 +594,6 @@ export class WeekViewComponent implements ICalendarComponent, OnInit, OnChanges 
     }
 
     select(events:IDisplayBooking[]) {
-        console.log("Doing nothing")
-    }
-
-    overlap(event1:IDisplayBooking, event2:IDisplayBooking):boolean {
-        return false;
-    }
-
-    setScrollPosition(scrollPosition:number) {
-        this.initScrollPosition = scrollPosition;
+        console.log(events)
     }
 }
