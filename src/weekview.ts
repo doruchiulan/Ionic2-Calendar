@@ -48,9 +48,9 @@ import { IWeekViewNormalEventSectionTemplateContext } from "./calendar";
                                     {{roomLabels[i]}}
                                 </td>
                                 <!-- For each day of this week -->
-                                <td *ngFor="let roomDayData of room" class="calendar-cell" tappable (click)="select(roomDayData.roomEvents)">
+                                <td *ngFor="let roomDayData of room; let dayIndex = index" class="calendar-cell" tappable (click)="select(roomDayData.roomEvents)">
                                     <ng-template [ngTemplateOutlet]="weekviewNormalEventSectionTemplate"
-                                                 [ngTemplateOutletContext]="{roomDayData:roomDayData, eventTemplate:weekviewNormalEventTemplate}">
+                                                 [ngTemplateOutletContext]="{roomDayData:roomDayData, dayIndex:dayIndex, eventTemplate:weekviewNormalEventTemplate}">
                                     </ng-template>
                                 </td>
                             </tr>
@@ -66,9 +66,9 @@ import { IWeekViewNormalEventSectionTemplateContext } from "./calendar";
                                 <td class="calendar-hour-column text-center">
                                     {{roomLabels[i]}}
                                 </td>
-                                <td *ngFor="let roomDayData of room" class="calendar-cell">
+                                <td *ngFor="let roomDayData of room; let dayIndex = index" class="calendar-cell">
                                     <ng-template [ngTemplateOutlet]="weekviewNormalEventSectionTemplate"
-                                                 [ngTemplateOutletContext]="{roomDayData:roomDayData}">
+                                                 [ngTemplateOutletContext]="{roomDayData:roomDayData, dayIndex:dayIndex}">
                                     </ng-template>
                                 </td>
                             </tr>
@@ -100,9 +100,9 @@ import { IWeekViewNormalEventSectionTemplateContext } from "./calendar";
                                     {{roomLabels[i]}}
                                 </td>
                                 <!-- For each day of this week -->
-                                <td *ngFor="let roomDayData of room" class="calendar-cell" tappable (click)="select(roomDayData.roomEvents)">
+                                <td *ngFor="let roomDayData of room; let dayIndex = index" class="calendar-cell" tappable (click)="select(roomDayData.roomEvents)">
                                     <ng-template [ngTemplateOutlet]="weekviewNormalEventSectionTemplate"
-                                                 [ngTemplateOutletContext]="{roomDayData:roomDayData, eventTemplate:weekviewNormalEventTemplate}">
+                                                 [ngTemplateOutletContext]="{roomDayData:roomDayData, dayIndex:dayIndex, eventTemplate:weekviewNormalEventTemplate}">
                                     </ng-template>
                                 </td>
                             </tr>
@@ -118,9 +118,9 @@ import { IWeekViewNormalEventSectionTemplateContext } from "./calendar";
                                 <td class="calendar-hour-column text-center">
                                     {{roomLabels[i]}}
                                 </td>
-                                <td *ngFor="let roomDayData of room" class="calendar-cell">
+                                <td *ngFor="let roomDayData of room; let dayIndex = index" class="calendar-cell">
                                     <ng-template [ngTemplateOutlet]="weekviewNormalEventSectionTemplate"
-                                                 [ngTemplateOutletContext]="{roomDayData:roomDayData}">
+                                                 [ngTemplateOutletContext]="{roomDayData:roomDayData, dayIndex:dayIndex}">
                                     </ng-template>
                                 </td>
                             </tr>
@@ -152,9 +152,9 @@ import { IWeekViewNormalEventSectionTemplateContext } from "./calendar";
                                     {{roomLabels[i]}}
                                 </td>
                                 <!-- For each day of this week -->
-                                <td *ngFor="let roomDayData of room" class="calendar-cell" tappable (click)="select(roomDayData.roomEvents)">
+                                <td *ngFor="let roomDayData of room; let dayIndex = index" class="calendar-cell" tappable (click)="select(roomDayData.roomEvents)">
                                     <ng-template [ngTemplateOutlet]="weekviewNormalEventSectionTemplate"
-                                                 [ngTemplateOutletContext]="{roomDayData:roomDayData, eventTemplate:weekviewNormalEventTemplate}">
+                                                 [ngTemplateOutletContext]="{roomDayData:roomDayData, dayIndex:dayIndex, eventTemplate:weekviewNormalEventTemplate}">
                                     </ng-template>
                                 </td>
                             </tr>
@@ -170,9 +170,9 @@ import { IWeekViewNormalEventSectionTemplateContext } from "./calendar";
                                 <td class="calendar-hour-column text-center">
                                     {{roomLabels[i]}}
                                 </td>
-                                <td *ngFor="let roomDayData of room" class="calendar-cell">
+                                <td *ngFor="let roomDayData of room; let dayIndex = index" class="calendar-cell">
                                     <ng-template [ngTemplateOutlet]="weekviewNormalEventSectionTemplate"
-                                                 [ngTemplateOutletContext]="{roomDayData:roomDayData}">
+                                                 [ngTemplateOutletContext]="{roomDayData:roomDayData, dayIndex:dayIndex}">
                                     </ng-template>
                                 </td>
                             </tr>
